@@ -28,6 +28,28 @@ GeoVista is an interactive dashboard that allows users to upload project data, a
 1. Install dependencies: `pip install -r requirements.txt`
 2. Run with: `streamlit run app.py`
 
+## 📷 Project Visuals
+
+### 💻 Command Line Interface
+![Command Line Interface](assets/cmd.png)
+
+### 🗺️ Dashboard View
+![Dashboard](assets/dashboard.png)
+
+### 📊 Sample Outputs
+
+#### 📌 Sample Output 1
+![Sample Output 1](assets/sampleout1.png)
+
+#### 📌 Sample Output 2
+![Sample Output 2](assets/sampleout2.png)
+
+#### 📌 Sample Output 3
+![Sample Output 3](assets/sampleout3.png)
+
+#### 📌 Sample Output 4
+![Sample Output 4](assets/sampleout4.png)
+
 ## Acknowledgements
 
 This project was created as part of the Code; Without Barriers Hackathon.
