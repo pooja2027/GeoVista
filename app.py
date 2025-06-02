@@ -3,40 +3,36 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.cluster import KMeans
 
-# Title of your app
 st.title("Geo Clustering with KMeans")
 
-# Load your data
 uploaded_file = st.file_uploader("Upload CSV file with latitude and longitude columns", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
+    df.columns = df.columns.str.strip()  # strip spaces
+    
+    # Debug print of columns
+    st.write("Columns in your CSV:", df.columns.tolist())
 
-    # Show raw data
-    st.write("Raw Data")
-    st.dataframe(df)
+    # Rename if needed (adjust based on your actual columns)
+    df.rename(columns={'Latitude': 'latitude', 'Longitude': 'longitude'}, inplace=True)
 
-    # Check required columns
     if 'latitude' in df.columns and 'longitude' in df.columns:
 
-        # Impute missing lat/lon with mean
+        st.write("Raw Data")
+        st.dataframe(df)
+
         imputer = SimpleImputer(strategy='mean')
         coords_imputed = imputer.fit_transform(df[['latitude', 'longitude']])
 
-        # Select number of clusters
-        n_clusters = st.slider("Select number of clusters", min_value=2, max_value=10, value=3)
+        n_clusters = st.slider("Select number of clusters", 2, 10, 3)
 
-        # KMeans clustering
         kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-        clusters = kmeans.fit_predict(coords_imputed)
-
-        # Assign clusters to dataframe
-        df['cluster'] = clusters
+        df['cluster'] = kmeans.fit_predict(coords_imputed)
 
         st.write("Clustered Data")
         st.dataframe(df)
 
-        # Optional: Show cluster centers
         centers = kmeans.cluster_centers_
         st.write("Cluster Centers (Latitude, Longitude)")
         st.write(pd.DataFrame(centers, columns=['latitude', 'longitude']))
