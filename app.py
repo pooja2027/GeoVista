@@ -1,50 +1,48 @@
 import streamlit as st
 import pandas as pd
-import folium
-from streamlit_folium import st_folium
+from sklearn.impute import SimpleImputer
 from sklearn.cluster import KMeans
 
-# Title
-st.set_page_config(page_title="GeoVista Dashboard", layout="wide")
-st.title("🌍 GeoVista: Geospatial Market Insights for AEC Industry")
-st.markdown("Upload your AEC project CSV file")
+# Title of your app
+st.title("Geo Clustering with KMeans")
 
-# File uploader
-uploaded_file = st.file_uploader("📂 Upload CSV", type=["csv"])
+# Load your data
+uploaded_file = st.file_uploader("Upload CSV file with latitude and longitude columns", type=["csv"])
 
-if uploaded_file:
+if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-    df.columns = df.columns.str.lower()  # make column names lowercase
 
-    st.subheader("📈 Raw Data")
-    st.dataframe(df.head())
+    # Show raw data
+    st.write("Raw Data")
+    st.dataframe(df)
 
-    # Check for required columns
+    # Check required columns
     if 'latitude' in df.columns and 'longitude' in df.columns:
+
+        # Impute missing lat/lon with mean
+        imputer = SimpleImputer(strategy='mean')
+        coords_imputed = imputer.fit_transform(df[['latitude', 'longitude']])
+
         # Select number of clusters
-        k = st.slider("🔢 Select number of clusters (K)", 2, 10, 3)
-        kmeans = KMeans(n_clusters=k, n_init='auto')
-        df['cluster'] = kmeans.fit_predict(df[['latitude', 'longitude']])
+        n_clusters = st.slider("Select number of clusters", min_value=2, max_value=10, value=3)
 
-        # Show Cluster Map
-        st.subheader("🗺️ Cluster Map")
-        m = folium.Map(location=[df['latitude'].mean(), df['longitude'].mean()], zoom_start=6)
+        # KMeans clustering
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        clusters = kmeans.fit_predict(coords_imputed)
 
-        cluster_colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred',
-                          'lightblue', 'pink', 'gray', 'cadetblue']
+        # Assign clusters to dataframe
+        df['cluster'] = clusters
 
-        for _, row in df.iterrows():
-            folium.CircleMarker(
-                location=[row['latitude'], row['longitude']],
-                radius=6,
-                color=cluster_colors[row['cluster'] % len(cluster_colors)],
-                fill=True,
-                fill_opacity=0.7,
-                popup=row.get('project_name', 'Project')
-            ).add_to(m)
+        st.write("Clustered Data")
+        st.dataframe(df)
 
-        st_folium(m, width=800, height=500)
+        # Optional: Show cluster centers
+        centers = kmeans.cluster_centers_
+        st.write("Cluster Centers (Latitude, Longitude)")
+        st.write(pd.DataFrame(centers, columns=['latitude', 'longitude']))
+
     else:
-        st.error("❌ CSV must contain columns named 'latitude' and 'longitude'. Please check your file.")
+        st.error("CSV must contain 'latitude' and 'longitude' columns.")
+
 else:
-    st.info("📌 Please upload a CSV file to begin.")
+    st.info("Please upload a CSV file to start clustering.")
